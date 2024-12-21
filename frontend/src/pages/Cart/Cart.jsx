@@ -17,24 +17,8 @@ const Cart = () => {
         })
         .then(res => res.json())
         .then(data => {
-            // Extract the item names from the response
-            const itemNames = data.itemNames || [];
-            console.log(data);
-            // Fetch item details based on the item names
-            if (itemNames.length > 0) {
-                fetch("http://localhost:4000/api/cart", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ itemNames })
-                })
-                .then(res => res.json())
-                .then(details => {
-                    // Set the fetched item details in the state
-                    setFetchedItems(details.items || []);
-                })
-                .catch(err => {
-                    console.error("Error fetching item details:", err);
-                });
+            if (data.details) {
+                setFetchedItems(data.details);
             }
         })
         .catch((err) => {
