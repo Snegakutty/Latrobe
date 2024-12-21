@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState ,useContext} from "react";
 import "./Header.css";
+import { StoreContext } from '../../Context/StoreContext'// Import the updated addItemsToCart function 
 
 const Header = () => {
   const [output, setOutput] = useState("");
   const [result, setResult] = useState("");
+   const {VaddItemsToCart} = useContext(StoreContext);
 
   const itemNames = [
     "carrot", "beans", "onion", "tomato", "potato", "cheese", "orange",
@@ -15,6 +17,8 @@ const Header = () => {
     "fortune oil", "gold winner", "saffola", "sunland sunflower oil", 
     "coconut cooking oil", "apple"
   ];
+
+  // Updated addItemsToCart function
 
   const startVoiceCommand = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -46,20 +50,14 @@ const Header = () => {
         console.log("Matched Items:", matchedItems);
 
         if (matchedItems.length > 0) {
-          fetch("http://localhost:5000/api/voice-command", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: matchedItems }), // Send matched items to backend
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              console.log("Backend response:", data.items); // Display matched items from backend
-              setResult(data.items.join(", "));
-            })
-            .catch((err) => {
-              console.error("Error:", err);
-              setResult("An error occurred while processing your request.");
-            });
+
+          
+          VaddItemsToCart(matchedItems).then(() => {
+            setResult("Items added to cart successfully.");
+          }).catch((err) => {
+            console.error("Error adding items to cart:", err);
+            setResult("An error occurred while adding items to the cart.");
+          });
         } else {
           setResult("No matching items found.");
         }
@@ -78,6 +76,10 @@ const Header = () => {
     };
 
     recognition.start();
+    // Add SpeechSynthesis to say "Place your orders"
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance("Place your orders");
+    synth.speak(utterance);
   };
 
   return (
