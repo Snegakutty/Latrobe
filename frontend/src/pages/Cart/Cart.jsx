@@ -9,20 +9,25 @@ const Cart = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if the page has already reloaded in this session
-    const hasReloaded = sessionStorage.getItem("cartReloaded");
+    // Check if the page has already been refreshed
+    const hasRefreshed = sessionStorage.getItem("hasRefreshed");
 
-    if (!hasReloaded) {
-      // Set the reload flag and reload the page
-      sessionStorage.setItem("cartReloaded", "true");
+    if (!hasRefreshed) {
+      sessionStorage.setItem("hasRefreshed", "true");
       window.location.reload();
-      return;
+      return; // Prevent further execution after reload
     }
 
-    // Continue with the rest of the logic if the page is not reloading
+    // Clear the refresh flag when leaving the cart page
+    return () => {
+      sessionStorage.removeItem("hasRefreshed");
+    };
+  }, []); // Empty dependency array so it only runs once on mount
+
+  useEffect(() => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
-      navigate("/"); // Redirect to home if the cart is empty
+      navigate("/");
       return;
     }
 
@@ -35,11 +40,11 @@ const Cart = () => {
 
     const utterance = new SpeechSynthesisUtterance(cartText);
     utterance.onend = () => startVoiceRecognition();
-    synth.cancel(); // Cancel any ongoing speech before speaking
+    synth.cancel();
     synth.speak(utterance);
 
     return () => {
-      synth.cancel(); // Cleanup ongoing speech on unmount
+      synth.cancel();
     };
   }, [cartItems, food_list, navigate]);
 
@@ -60,7 +65,7 @@ const Cart = () => {
       console.log("User said:", transcript);
 
       const synth = window.speechSynthesis;
-      synth.cancel(); // Cancel any ongoing speech before speaking new output
+      synth.cancel();
 
       if (transcript.includes("yes")) {
         const utterance = new SpeechSynthesisUtterance(
@@ -69,7 +74,7 @@ const Cart = () => {
         synth.speak(utterance);
 
         utterance.onend = () => {
-          navigate("/"); // Navigate to the order page after confirmation
+          navigate("/");
         };
       } else if (transcript.includes("no")) {
         const utterance = new SpeechSynthesisUtterance(
@@ -78,14 +83,14 @@ const Cart = () => {
         synth.speak(utterance);
 
         utterance.onend = () => {
-          navigate("/"); // Navigate to the home page
+          navigate("/");
         };
       } else {
         const utterance = new SpeechSynthesisUtterance(
           "I didn't understand. Please say yes or no."
         );
         synth.speak(utterance);
-        recognition.start(); // Restart voice recognition for clarification
+        recognition.start();
       }
     };
 
@@ -99,30 +104,32 @@ const Cart = () => {
 
   return (
     <div className="cart">
-      <div className="cart-items">
-        <div className="cart-items-title">
+      <div className="cart-items bg-orange-50 rounded-lg p-6">
+        <div className="cart-items-title text-orange-800 font-semibold">
           <p>Items</p> <p>Title</p> <p>Price</p> <p>Quantity</p> <p>Total</p> <p>Remove</p>
         </div>
         <br />
-        <hr />
+        <hr className="border-orange-200" />
         {food_list.map((item, index) => {
           if (cartItems[item._id] > 0) {
             return (
               <div key={index}>
-                <div className="cart-items-title cart-items-item">
-                  <img src={`${url}/images/${item.image}`} alt="" />
-                  <p>{item.name}</p>
-                  <p>${item.price}</p>
-                  <div>{cartItems[item._id]}</div>
-                  <p>${item.price * cartItems[item._id]}</p>
+                <div className="cart-items-title cart-items-item hover:bg-orange-100 transition-colors">
+                  <img src={`${url}/images/${item.image}`} alt="" className="rounded-lg shadow-sm" />
+                  <p className="text-orange-900">{item.name}</p>
+                  <p className="text-orange-700">${item.price}</p>
+                  <div className="bg-orange-100 px-3 py-1 rounded-full text-orange-800">
+                    {cartItems[item._id]}
+                  </div>
+                  <p className="text-orange-700">${item.price * cartItems[item._id]}</p>
                   <p
-                    className="cart-items-remove-icon"
+                    className="cart-items-remove-icon text-orange-500 hover:text-orange-700 cursor-pointer transition-colors"
                     onClick={() => removeFromCart(item._id)}
                   >
-                    x
+                    ×
                   </p>
                 </div>
-                <hr />
+                <hr className="border-orange-200" />
               </div>
             );
           }
@@ -130,32 +137,43 @@ const Cart = () => {
         })}
       </div>
       <div className="cart-bottom">
-        <div className="cart-total">
-          <h2>Cart Totals</h2>
+        <div className="cart-total bg-orange-50 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-orange-800 mb-4">Cart Totals</h2>
           <div>
-            <div className="cart-total-details">
+            <div className="cart-total-details text-orange-700">
               <p>Subtotal</p>
               <p>${getTotalCartAmount()}</p>
             </div>
-            <hr />
-            <div className="cart-total-details">
+            <hr className="border-orange-200 my-3" />
+            <div className="cart-total-details text-orange-700">
               <p>Delivery Fee</p>
-              <p>{getTotalCartAmount() === 0 ? 0 : 5}</p>
+              <p>${getTotalCartAmount() === 0 ? 0 : 5}</p>
             </div>
-            <hr />
-            <div className="cart-total-details">
-              <b>Total</b>
-              <b>${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 5}</b>
+            <hr className="border-orange-200 my-3" />
+            <div className="cart-total-details text-orange-900 font-bold">
+              <p>Total</p>
+              <p>${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 5}</p>
             </div>
           </div>
-          <button onClick={() => navigate("/order")}>PROCEED TO CHECKOUT</button>
+          <button 
+            onClick={() => navigate("/order")}
+            className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            PROCEED TO CHECKOUT
+          </button>
         </div>
-        <div className="cart-promocode">
+        <div className="cart-promocode bg-orange-50 rounded-lg p-6 mt-6">
           <div>
-            <p>If you have a promo code, Enter it here</p>
+            <p className="text-orange-800 font-medium mb-3">If you have a promo code, Enter it here</p>
             <div className="cart-promocode-input">
-              <input type="text" placeholder="promo code" />
-              <button>Submit</button>
+              <input 
+                type="text" 
+                placeholder="promo code" 
+                className="border border-orange-200 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+              />
+              <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg ml-2 transition-colors">
+                Submit
+              </button>
             </div>
           </div>
         </div>
