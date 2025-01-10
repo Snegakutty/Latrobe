@@ -33,12 +33,20 @@ const Cart = () => {
 
     const synth = window.speechSynthesis;
 
+    // Construct the cart text
     const cartText = `Your cart contains the following items: ${food_list
       .filter((item) => cartItems[item._id] > 0)
       .map((item) => `${item.name} with quantity ${cartItems[item._id]}`)
-      .join(", ")}. Can I proceed to checkout?`;
+      .join(", ")}.`;
 
-    const utterance = new SpeechSynthesisUtterance(cartText);
+    // Get the total amount and include it in the speech text
+    const totalAmount = getTotalCartAmount();
+    const totalText = `The total amount is ${totalAmount === 0 ? 0 : totalAmount + 5} Rupees. Can I proceed to checkout?`;
+
+    // Combine the cart and total text
+    const combinedText = cartText + " " + totalText;
+
+    const utterance = new SpeechSynthesisUtterance(combinedText);
     utterance.onend = () => startVoiceRecognition();
     synth.cancel();
     synth.speak(utterance);
@@ -46,7 +54,7 @@ const Cart = () => {
     return () => {
       synth.cancel();
     };
-  }, [cartItems, food_list, navigate]);
+  }, [cartItems, food_list, navigate, getTotalCartAmount]);
 
   const startVoiceRecognition = () => {
     const SpeechRecognition =
@@ -117,11 +125,11 @@ const Cart = () => {
                 <div className="cart-items-title cart-items-item hover:bg-orange-100 transition-colors">
                   <img src={`${url}/images/${item.image}`} alt="" className="rounded-lg shadow-sm" />
                   <p className="text-orange-900">{item.name}</p>
-                  <p className="text-orange-700">${item.price}</p>
+                  <p className="text-orange-700">{item.price}</p>
                   <div className="bg-orange-100 px-3 py-1 rounded-full text-orange-800">
                     {cartItems[item._id]}
                   </div>
-                  <p className="text-orange-700">${item.price * cartItems[item._id]}</p>
+                  <p className="text-orange-700">{item.price * cartItems[item._id]}</p>
                   <p
                     className="cart-items-remove-icon text-orange-500 hover:text-orange-700 cursor-pointer transition-colors"
                     onClick={() => removeFromCart(item._id)}
@@ -142,17 +150,17 @@ const Cart = () => {
           <div>
             <div className="cart-total-details text-orange-700">
               <p>Subtotal</p>
-              <p>${getTotalCartAmount()}</p>
+              <p>{getTotalCartAmount()}</p>
             </div>
             <hr className="border-orange-200 my-3" />
             <div className="cart-total-details text-orange-700">
               <p>Delivery Fee</p>
-              <p>${getTotalCartAmount() === 0 ? 0 : 5}</p>
+              <p>{getTotalCartAmount() === 0 ? 0 : 5}</p>
             </div>
             <hr className="border-orange-200 my-3" />
             <div className="cart-total-details text-orange-900 font-bold">
               <p>Total</p>
-              <p>${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 5}</p>
+              <p>{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 5}</p>
             </div>
           </div>
           <button 

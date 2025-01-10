@@ -1,8 +1,11 @@
+*{
+    color: #1f456e;
+}
 .header{
     height: 34vw;
     margin: 30px auto;
-    background: url('/header_img.png') no-repeat;
-    background-size:contain;
+    background: url("C:/Users/SNEGA/Desktop/tech infusion/Latrobe/frontend/src/assets/header_img.jpg") no-repeat;
+    background-size:cover;
     position: relative;
 }
 .header-contents{
@@ -18,8 +21,8 @@
 }
 .header-contents h2{
     font-weight:500;
-    color: white;
-    font-size: max(4.5vw,22px);
+    color: #1f456e;
+    font-size: max(4.5vw,25px);
 }
 .header-contents p{
     color: white;
